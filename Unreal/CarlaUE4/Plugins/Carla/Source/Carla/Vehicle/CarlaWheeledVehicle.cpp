@@ -49,6 +49,40 @@ ACarlaWheeledVehicle::ACarlaWheeledVehicle(const FObjectInitializer& ObjectIniti
 
 ACarlaWheeledVehicle::~ACarlaWheeledVehicle() {}
 
+// =============================================================================
+// custom functions: to make blackice zone work, will be removed after we have a better solution -----------------------------------------------
+void ACarlaWheeledVehicle::SetBlackIceFriction(float NewScale)
+{
+    if (!bSavedOriginalTireFriction)
+    {
+        OriginalTireFrictionScales = GetWheelsFrictionScale();
+        bSavedOriginalTireFriction = true;
+    }
+
+    TArray<float> NewFrictionScales;
+    NewFrictionScales.Init(NewScale, OriginalTireFrictionScales.Num());
+
+    SetWheelsFrictionScale(NewFrictionScales);
+
+    UE_LOG(LogTemp, Warning, TEXT("[BlackIce] Applied friction scale %.3f to %s"), NewScale, *GetName());
+}
+
+void ACarlaWheeledVehicle::RestoreBlackIceFriction()
+{
+    if (!bSavedOriginalTireFriction)
+    {
+        return;
+    }
+
+    SetWheelsFrictionScale(OriginalTireFrictionScales);
+
+    UE_LOG(LogTemp, Warning, TEXT("[BlackIce] Restored friction for %s"), *GetName());
+
+    OriginalTireFrictionScales.Empty();
+    bSavedOriginalTireFriction = false;
+}
+// =============================================================================
+
 void ACarlaWheeledVehicle::SetWheelCollision(UWheeledVehicleMovementComponent4W *Vehicle4W,
     const FVehiclePhysicsControl &PhysicsControl ) {
 

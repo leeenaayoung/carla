@@ -566,7 +566,8 @@ def build_binary_for_tm(package_name, dirname, maps):
         (map["name"], map["xodr"]) for map in maps if "xodr" in map)
 
     for target_name, xodr in xodrs:
-        with open(os.path.join(dirname, xodr), "rt") as f:
+        # with open(os.path.join(dirname, xodr), "rt") as f:
+        with open(os.path.join(dirname, xodr), "rt", encoding="utf-8") as f:
             data = f.read()
 
         # copy the binary file

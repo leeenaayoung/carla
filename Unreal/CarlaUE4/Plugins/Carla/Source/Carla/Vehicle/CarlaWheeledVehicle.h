@@ -24,8 +24,7 @@
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "MovementComponents/BaseCarlaMovementComponent.h"
 
-
-#include "FoliageInstancedStaticMeshComponent.h"
+// #include "FoliageInstancedStaticMeshComponent.h"
 #include "CoreMinimal.h"
 
 //-----CARSIM--------------------------------
@@ -496,4 +495,16 @@ public:
 
   UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
   void SetRotationAnim(float Rotation) { RotationAnim = Rotation; }
+
+// customed function to make blackice zone work, will be removed after we have a better solution
+  UFUNCTION(BlueprintCallable, Category = "BlackIce")
+  void SetBlackIceFriction(float NewScale);
+
+  UFUNCTION(BlueprintCallable, Category = "BlackIce")
+  void RestoreBlackIceFriction();
+
+private:
+
+    TArray<float> OriginalTireFrictionScales;
+    bool bSavedOriginalTireFriction = false;
 };
