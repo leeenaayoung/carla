@@ -71,6 +71,12 @@ class CARLA_API ACarlaWheeledVehicle : public AWheeledVehicle
     GENERATED_BODY()
 
 public:
+    // custom header to add BlackIce
+    //UFUNCTION(BlueprintCallable, Category = "BlackIce")
+    //void SetBlackIceFriction(float NewScale);
+
+    //UFUNCTION(BlueprintCallable, Category = "BlackIce")
+    //void RestoreBlackIceFriction();
 
     ACarlaWheeledVehicle(const FObjectInitializer& ObjectInitializer);
     ~ACarlaWheeledVehicle();
@@ -250,16 +256,16 @@ public:
     void SetCarlaMovementComponent(UBaseCarlaMovementComponent* MovementComponent);
 
     UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
-    void SetBlackIceFriction(float NewFrictionScale);
+    void SetBlackIceFriction(float NewScale);
 
     UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
     void RestoreBlackIceFriction();
 
-    UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
+    /*UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
     bool IsBlackIceActive() const
     {
         return bBlackIceActive;
-    }
+    }*/
 
     template <typename T = UBaseCarlaMovementComponent>
     T* GetCarlaMovementComponent() const
@@ -289,6 +295,10 @@ protected:
     void ResetConstraints();
 
 private:
+
+    TArray<float> OriginalTireFrictionScales;
+
+    bool bSavedOriginalTireFriction = false;
 
     UPROPERTY(Category = "AI Controller", VisibleAnywhere)
     ECarlaWheeledVehicleState State = ECarlaWheeledVehicleState::UNKNOWN;
@@ -323,11 +333,11 @@ private:
 
     carla::rpc::VehicleFailureState FailureState = carla::rpc::VehicleFailureState::None;
 
-    UPROPERTY()
-    TArray<FWheelPhysicsControl> SavedWheelPhysics;
+    /*UPROPERTY()
+    TArray<FWheelPhysicsControl> SavedWheelPhysics;*/
 
-    UPROPERTY()
-    bool bBlackIceActive = false;
+    /*UPROPERTY()
+    bool bBlackIceActive = false;*/
 
 public:
 
