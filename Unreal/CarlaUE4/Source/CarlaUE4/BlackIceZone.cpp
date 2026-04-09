@@ -6,6 +6,8 @@
 #include "Components/BoxComponent.h"
 #include "Carla/Vehicle/CarlaWheeledVehicle.h"
 
+#include "DrawDebugHelpers.h"
+
 ABlackIceZone::ABlackIceZone()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -13,7 +15,7 @@ ABlackIceZone::ABlackIceZone()
     TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
     RootComponent = TriggerBox;
 
-    TriggerBox->SetBoxExtent(FVector(300.0f, 150.0f, 100.0f));
+    TriggerBox->SetBoxExtent(FVector(180.0f, 90.0f, 80.0f));
     TriggerBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     TriggerBox->SetCollisionObjectType(ECC_WorldDynamic);
     TriggerBox->SetCollisionResponseToAllChannels(ECR_Ignore);
@@ -27,6 +29,24 @@ void ABlackIceZone::BeginPlay()
 
     TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &ABlackIceZone::OnBeginOverlap);
     TriggerBox->OnComponentEndOverlap.AddDynamic(this, &ABlackIceZone::OnEndOverlap);
+
+    //DrawDebugBox(
+    //    GetWorld(),
+    //    TriggerBox->GetComponentLocation(),
+    //    TriggerBox->GetScaledBoxExtent(),
+    //    TriggerBox->GetComponentQuat(),
+    //    FColor::Cyan,
+    //    true,
+    //    9999.0f,
+    //    0,
+    //    5.0f
+    //);
+
+    UE_LOG(LogTemp, Warning, TEXT("[BlackIceZone] Name=%s ActorLoc=%s TriggerLoc=%s Extent=%s"),
+        *GetName(),
+        *GetActorLocation().ToString(),
+        *TriggerBox->GetComponentLocation().ToString(),
+        *TriggerBox->GetScaledBoxExtent().ToString());
 }
 
 void ABlackIceZone::OnBeginOverlap(
@@ -48,31 +68,23 @@ void ABlackIceZone::OnBeginOverlap(
         return;
     }
 
-    if (bAffectOnlyEgo)
-    {
-        const FString ActorName = OtherActor->GetName();
-        if (!ActorName.Contains(TEXT("Tesla")) && !ActorName.Contains(TEXT("Ego")) && !ActorName.Contains(TEXT("Audi")))
-        {
-            return;
-        }
-    }
-
-    if (bZoneActive && CurrentVehicle == Vehicle)
+    if (VehiclesInZone.Contains(Vehicle))
     {
         return;
     }
 
-    CurrentVehicle = Vehicle;
-    bZoneActive = true;
+    VehiclesInZone.Add(Vehicle);
 
-    // low friction value
+    UE_LOG(LogTemp, Warning, TEXT("[BlackIce] Enter Vehicle=%s Comp=%s"),
+        *OtherActor->GetName(),
+        OtherComp ? *OtherComp->GetName() : TEXT("None"));
+
     Vehicle->SetBlackIceFriction(IceFrictionScale);
 
     if (VisualActor)
     {
         VisualActor->SetIceVisible(true);
     }
-    UE_LOG(LogTemp, Warning, TEXT("[BlackIce] Enter Vehicle = %s"), *OtherActor->GetName());
 }
 
 void ABlackIceZone::OnEndOverlap(
@@ -92,21 +104,22 @@ void ABlackIceZone::OnEndOverlap(
         return;
     }
 
-    // Restore original friction
-    if (Vehicle != CurrentVehicle)
+    if (!VehiclesInZone.Contains(Vehicle))
     {
         return;
     }
 
+    VehiclesInZone.Remove(Vehicle);
+
     Vehicle->RestoreBlackIceFriction();
 
-    if (VisualActor)
+    UE_LOG(LogTemp, Warning, TEXT("[BlackIce] Exit Vehicle=%s, ZoneLoc=%s, VehicleLoc=%s"),
+        *OtherActor->GetName(),
+        *GetActorLocation().ToString(),
+        *OtherActor->GetActorLocation().ToString());
+
+    if (VisualActor && VehiclesInZone.Num() == 0)
     {
         VisualActor->SetIceVisible(false);
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("[BlackIce] Exit Vehicle = %s"), *OtherActor->GetName());
-
-    CurrentVehicle = nullptr;
-    bZoneActive = false;
 }

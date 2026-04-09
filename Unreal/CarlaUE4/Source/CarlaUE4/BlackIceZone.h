@@ -25,16 +25,17 @@ public:
     ABlackIceVisualActor* VisualActor;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlackIce")
-    float IceFrictionScale = 0.15f;
+    float IceFrictionScale = 0.21f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlackIce")
-    bool bAffectOnlyEgo = true;
+    bool bAffectOnlyEgo = false;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BlackIce")
     bool bZoneActive = false;
 
     UPROPERTY()
-    ACarlaWheeledVehicle* CurrentVehicle = nullptr;
+    /*ACarlaWheeledVehicle* CurrentVehicle = nullptr;*/
+    TSet<ACarlaWheeledVehicle*> VehiclesInZone;
 
 protected:
     virtual void BeginPlay() override;
