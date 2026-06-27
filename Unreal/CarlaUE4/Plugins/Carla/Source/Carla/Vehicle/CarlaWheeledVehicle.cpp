@@ -53,44 +53,82 @@ ACarlaWheeledVehicle::~ACarlaWheeledVehicle() {}
 // custom functions: to make blackice zone work, will be removed after we have a better solution -----------------------------------------------
 void ACarlaWheeledVehicle::SetBlackIceFriction(float NewScale)
 {
+    UWheeledVehicleMovementComponent4W* Vehicle4W =
+        Cast<UWheeledVehicleMovementComponent4W>(GetVehicleMovement());
+    if (!Vehicle4W || !Vehicle4W->PVehicle) return;
+
+    const int32 NumWheels = Vehicle4W->Wheels.Num();
+
     if (!bSavedOriginalTireFriction)
     {
-        OriginalTireFrictionScales = GetWheelsFrictionScale();
+        OriginalTireFrictionScales.SetNum(NumWheels);
+        for (int32 i = 0; i < NumWheels; ++i)
+        {
+            OriginalTireFrictionScales[i] =
+                Vehicle4W->Wheels[i]->TireConfig->GetFrictionScale();
+        }
         bSavedOriginalTireFriction = true;
     }
 
-    if (OriginalTireFrictionScales.Num() == 0)
+    for (int32 i = 0; i < NumWheels; ++i)
     {
-        UE_LOG(LogCarla, Warning, TEXT("[BlackIce] No wheel friction data for %s"), *GetName());
-        return;
+        Vehicle4W->Wheels[i]->TireConfig->SetFrictionScale(NewScale);
     }
 
-    TArray<float> NewFrictionScales;
-    NewFrictionScales.Init(NewScale, OriginalTireFrictionScales.Num());
+    for (int32 i = 0; i < NumWheels; ++i)
+    {
+        PxVehicleTireData TireData =
+            Vehicle4W->PVehicle->mWheelsSimData.getTireData(i);
 
-    SetWheelsFrictionScale(NewFrictionScales);
+        // Lateral stiffness를 줄이면 "핸들이 안 먹는" 느낌
+        TireData.mLatStiffY *= NewScale * 0.75f;
+        // Longitudinal은 덜 줄여서 속도 유지
+        TireData.mLongitudinalStiffnessPerUnitGravity *= FMath::Max(NewScale * 2.5f, 0.7f);
 
-    UE_LOG(LogCarla, Warning, TEXT("[BlackIce] Applied friction scale %.3f to %s"), NewScale, *GetName());
+        Vehicle4W->PVehicle->mWheelsSimData.setTireData(i, TireData);
+    }
+
+    UE_LOG(LogCarla, Warning, TEXT("[BlackIce] Direct friction %.3f applied to %s"),
+        NewScale, *GetName());
 }
 
 void ACarlaWheeledVehicle::RestoreBlackIceFriction()
 {
-    if (!bSavedOriginalTireFriction)
+    if (!bSavedOriginalTireFriction) return;
+
+    UWheeledVehicleMovementComponent4W* Vehicle4W =
+        Cast<UWheeledVehicleMovementComponent4W>(GetVehicleMovement());
+    if (!Vehicle4W || !Vehicle4W->PVehicle) return;
+
+    const int32 NumWheels = Vehicle4W->Wheels.Num();
+
+    // TireConfig 복원
+    for (int32 i = 0; i < NumWheels; ++i)
     {
-        return;
+        if (i < OriginalTireFrictionScales.Num())
+        {
+            Vehicle4W->Wheels[i]->TireConfig->SetFrictionScale(
+                OriginalTireFrictionScales[i]);
+        }
     }
 
-    if (OriginalTireFrictionScales.Num() == 0)
+    // PhysX 타이어 데이터도 원래 PhysicsControl에서 복원
+    FVehiclePhysicsControl PC = GetVehiclePhysicsControl();
+    for (int32 i = 0; i < NumWheels; ++i)
     {
-        return;
+        if (i < PC.Wheels.Num())
+        {
+            PxVehicleTireData TireData =
+                Vehicle4W->PVehicle->mWheelsSimData.getTireData(i);
+            TireData.mLatStiffY = PC.Wheels[i].LatStiffValue;
+            TireData.mLongitudinalStiffnessPerUnitGravity = PC.Wheels[i].LongStiffValue;
+            Vehicle4W->PVehicle->mWheelsSimData.setTireData(i, TireData);
+        }
     }
 
-    SetWheelsFrictionScale(OriginalTireFrictionScales);
-
-    UE_LOG(LogCarla, Warning, TEXT("[BlackIce] Restored friction for %s"), *GetName());
-
-    OriginalTireFrictionScales.Empty();
     bSavedOriginalTireFriction = false;
+
+    UE_LOG(LogCarla, Warning, TEXT("[BlackIce] Friction restored for %s"), *GetName());
 }
 // ------------------------------------------------------------------------------------
 

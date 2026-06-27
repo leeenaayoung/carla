@@ -1,40 +1,40 @@
-  // Copyright (c) 2025 Computer Vision Center (CVC) at the Universitat Autonoma
-  // de Barcelona (UAB).
-  //
-  // This work is licensed under the terms of the MIT license.
-  // For a copy, see <https://opensource.org/licenses/MIT>.
+// Copyright (c) 2025 Computer Vision Center (CVC) at the Universitat Autonoma
+// de Barcelona (UAB).
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
 
-  #pragma once
+#pragma once
 
-  #include "Carla/Actor/ActorDefinition.h"
-  #include "Carla/Actor/ActorDescription.h"
-  #include "Carla/Actor/PedestrianParameters.h"
-  #include "Carla/Actor/PropParameters.h"
-  #include "Carla/Actor/VehicleParameters.h"
-  #include "Carla/Sensor/GnssSensor.h"
-  #include "Carla/Sensor/Radar.h"
-  #include "Carla/Sensor/InertialMeasurementUnit.h"
-  #include "Carla/Sensor/V2XSensor.h"
-  #include "Carla/Sensor/CustomV2XSensor.h"
-  #include "Carla/Sensor/V2XSensor.h"
-  #include "Carla/Sensor/CustomV2XSensor.h"
+#include "Carla/Actor/ActorDefinition.h"
+#include "Carla/Actor/ActorDescription.h"
+#include "Carla/Actor/PedestrianParameters.h"
+#include "Carla/Actor/PropParameters.h"
+#include "Carla/Actor/VehicleParameters.h"
+#include "Carla/Sensor/GnssSensor.h"
+#include "Carla/Sensor/Radar.h"
+#include "Carla/Sensor/InertialMeasurementUnit.h"
+#include "Carla/Sensor/V2XSensor.h"
+#include "Carla/Sensor/CustomV2XSensor.h"
+#include "Carla/Sensor/V2XSensor.h"
+#include "Carla/Sensor/CustomV2XSensor.h"
 
-  #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 
-  #include "ActorBlueprintFunctionLibrary.generated.h"
+#include "ActorBlueprintFunctionLibrary.generated.h"
 
-  class ASceneCaptureSensor;
-  class AShaderBasedSensor;
-  class ASceneCaptureSensor_WideAngleLens;
-  class AShaderBasedSensor_WideAngleLens;
-  struct FLidarDescription;
+class ASceneCaptureSensor;
+class AShaderBasedSensor;
+class ASceneCaptureSensor_WideAngleLens;
+class AShaderBasedSensor_WideAngleLens;
+struct FLidarDescription;
 
-  UCLASS()
-  class UActorBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
-  {
+UCLASS()
+class UActorBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
+{
     GENERATED_BODY()
 
-  public:
+public:
 
     /// @}
     /// ==========================================================================
@@ -44,12 +44,12 @@
 
     /// Return whether the actor definition is valid. Prints all the errors found.
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
-    static bool CheckActorDefinition(const FActorDefinition &ActorDefinitions);
+    static bool CheckActorDefinition(const FActorDefinition& ActorDefinitions);
 
     /// Return whether the list of actor definitions is valid. Prints all the
     /// errors found.
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
-    static bool CheckActorDefinitions(const TArray<FActorDefinition> &ActorDefinitions);
+    static bool CheckActorDefinitions(const TArray<FActorDefinition>& ActorDefinitions);
 
     /// @}
     /// ==========================================================================
@@ -58,42 +58,42 @@
     /// @{
 
     static void AddCommonCameraParameters(
-        const FString &Id,
+        const FString& Id,
         bool bEnableModifyingPostProcessEffects,
-        bool &Success,
-        FActorDefinition &Definition);
-    
+        bool& Success,
+        FActorDefinition& Definition);
+
     static void AddCommonWideAngleLensCameraParameters(
-        const FString &Id,
+        const FString& Id,
         bool bEnableModifyingPostProcessEffects,
-        bool &Success,
-        FActorDefinition &Definition);
-    
+        bool& Success,
+        FActorDefinition& Definition);
+
     static void AddCommonPostProcessingEffectsParameters(
-        const FString &Id,
+        const FString& Id,
         bool bEnableModifyingPostProcessEffects,
-        bool &Success,
-        FActorDefinition &Definition);
-      
+        bool& Success,
+        FActorDefinition& Definition);
+
     static FActorDefinition MakeGenericDefinition(
-        const FString &Category,
-        const FString &Type,
-        const FString &Id);
+        const FString& Category,
+        const FString& Type,
+        const FString& Id);
 
     static FActorDefinition MakeGenericSensorDefinition(
-        const FString &Type,
-        const FString &Id);
+        const FString& Type,
+        const FString& Id);
 
     static FActorDefinition MakeCameraDefinition(
-        const FString &Id,
+        const FString& Id,
         bool bEnableModifyingPostProcessEffects = false);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeCameraDefinition(
-        const FString &Id,
+        const FString& Id,
         bool bEnableModifyingPostProcessEffects,
-        bool &Success,
-        FActorDefinition &Definition);
+        bool& Success,
+        FActorDefinition& Definition);
 
     static FActorDefinition MakeWideAngleLensCameraDefinition(
         const FString& Id,
@@ -107,98 +107,98 @@
         FActorDefinition& Definition);
 
     static FActorDefinition MakeLidarDefinition(
-        const FString &Id);
+        const FString& Id);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeLidarDefinition(
-        const FString &Id,
-        bool &Success,
-        FActorDefinition &Definition);
+        const FString& Id,
+        bool& Success,
+        FActorDefinition& Definition);
 
     static FActorDefinition MakeGnssDefinition();
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeGnssDefinition(
-        bool &Success,
-        FActorDefinition &Definition);
+        bool& Success,
+        FActorDefinition& Definition);
 
     static FActorDefinition MakeIMUDefinition();
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeIMUDefinition(
-        bool &Success,
-        FActorDefinition &Definition);
+        bool& Success,
+        FActorDefinition& Definition);
 
     static FActorDefinition MakeRadarDefinition();
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeRadarDefinition(
-        bool &Success,
-        FActorDefinition &Definition);
+        bool& Success,
+        FActorDefinition& Definition);
 
     static FActorDefinition MakeV2XDefinition();
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeV2XDefinition(
-        bool &Success,
-        FActorDefinition &Definition);
+        bool& Success,
+        FActorDefinition& Definition);
 
     static FActorDefinition MakeCustomV2XDefinition();
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeCustomV2XDefinition(
-        bool &Success,
-        FActorDefinition &Definition);            
+        bool& Success,
+        FActorDefinition& Definition);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeVehicleDefinition(
-        const FVehicleParameters &Parameters,
-        bool &Success,
-        FActorDefinition &Definition);
+        const FVehicleParameters& Parameters,
+        bool& Success,
+        FActorDefinition& Definition);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeVehicleDefinitions(
-        const TArray<FVehicleParameters> &ParameterArray,
-        TArray<FActorDefinition> &Definitions);
+        const TArray<FVehicleParameters>& ParameterArray,
+        TArray<FActorDefinition>& Definitions);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakePedestrianDefinition(
-        const FPedestrianParameters &Parameters,
-        bool &Success,
-        FActorDefinition &Definition);
+        const FPedestrianParameters& Parameters,
+        bool& Success,
+        FActorDefinition& Definition);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakePedestrianDefinitions(
-        const TArray<FPedestrianParameters> &ParameterArray,
-        TArray<FActorDefinition> &Definitions);
+        const TArray<FPedestrianParameters>& ParameterArray,
+        TArray<FActorDefinition>& Definitions);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeTriggerDefinitions(
-        const TArray<FString> &ParameterArray,
-        TArray<FActorDefinition> &Definitions);
+        const TArray<FString>& ParameterArray,
+        TArray<FActorDefinition>& Definitions);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakeTriggerDefinition(
-        const FString &Id,
-        bool &Success,
-        FActorDefinition &Definition);
+        const FString& Id,
+        bool& Success,
+        FActorDefinition& Definition);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakePropDefinition(
-        const FPropParameters &Parameters,
-        bool &Success,
-        FActorDefinition &Definition);
+        const FPropParameters& Parameters,
+        bool& Success,
+        FActorDefinition& Definition);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static void MakePropDefinitions(
-        const TArray<FPropParameters> &ParameterArray,
-        TArray<FActorDefinition> &Definitions);
+        const TArray<FPropParameters>& ParameterArray,
+        TArray<FActorDefinition>& Definitions);
 
     UFUNCTION()
     static void MakeObstacleDetectorDefinitions(
-        const FString &Type,
-        const FString &Id,
-        FActorDefinition &Definition);
+        const FString& Type,
+        const FString& Id,
+        FActorDefinition& Definition);
 
     /// @}
     /// ==========================================================================
@@ -207,49 +207,49 @@
     /// @{
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
-    static bool ActorAttributeToBool(const FActorAttribute &ActorAttribute, bool Default);
+    static bool ActorAttributeToBool(const FActorAttribute& ActorAttribute, bool Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
-    static int32 ActorAttributeToInt(const FActorAttribute &ActorAttribute, int32 Default);
+    static int32 ActorAttributeToInt(const FActorAttribute& ActorAttribute, int32 Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
-    static float ActorAttributeToFloat(const FActorAttribute &ActorAttribute, float Default);
+    static float ActorAttributeToFloat(const FActorAttribute& ActorAttribute, float Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
-    static FString ActorAttributeToString(const FActorAttribute &ActorAttribute, const FString &Default);
+    static FString ActorAttributeToString(const FActorAttribute& ActorAttribute, const FString& Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
-    static FColor ActorAttributeToColor(const FActorAttribute &ActorAttribute, const FColor &Default);
+    static FColor ActorAttributeToColor(const FActorAttribute& ActorAttribute, const FColor& Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static bool RetrieveActorAttributeToBool(
-        const FString &Id,
-        const TMap<FString, FActorAttribute> &Attributes,
+        const FString& Id,
+        const TMap<FString, FActorAttribute>& Attributes,
         bool Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static int32 RetrieveActorAttributeToInt(
-        const FString &Id,
-        const TMap<FString, FActorAttribute> &Attributes,
+        const FString& Id,
+        const TMap<FString, FActorAttribute>& Attributes,
         int32 Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static float RetrieveActorAttributeToFloat(
-        const FString &Id,
-        const TMap<FString, FActorAttribute> &Attributes,
+        const FString& Id,
+        const TMap<FString, FActorAttribute>& Attributes,
         float Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static FString RetrieveActorAttributeToString(
-        const FString &Id,
-        const TMap<FString, FActorAttribute> &Attributes,
-        const FString &Default);
+        const FString& Id,
+        const TMap<FString, FActorAttribute>& Attributes,
+        const FString& Default);
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
     static FColor RetrieveActorAttributeToColor(
-        const FString &Id,
-        const TMap<FString, FActorAttribute> &Attributes,
-        const FColor &Default);
+        const FString& Id,
+        const TMap<FString, FActorAttribute>& Attributes,
+        const FColor& Default);
 
     /// @}
     /// ==========================================================================
@@ -258,20 +258,20 @@
     /// @{
 
     UFUNCTION(Category = "Carla Actor", BlueprintCallable)
-    static void SetCamera(const FActorDescription &Description, ASceneCaptureSensor *Camera);
-    static void SetCamera(const FActorDescription &Description, AShaderBasedSensor *Camera);
-    
-    static void SetCamera(const FActorDescription &Description, ASceneCaptureSensor_WideAngleLens *Camera);
-    static void SetCamera(const FActorDescription &Description, AShaderBasedSensor_WideAngleLens *Camera);
+    static void SetCamera(const FActorDescription& Description, ASceneCaptureSensor* Camera);
+    static void SetCamera(const FActorDescription& Description, AShaderBasedSensor* Camera);
 
-    static void SetLidar(const FActorDescription &Description, FLidarDescription &Lidar);
+    static void SetCamera(const FActorDescription& Description, ASceneCaptureSensor_WideAngleLens* Camera);
+    static void SetCamera(const FActorDescription& Description, AShaderBasedSensor_WideAngleLens* Camera);
 
-    static void SetGnss(const FActorDescription &Description, AGnssSensor *Gnss);
+    static void SetLidar(const FActorDescription& Description, FLidarDescription& Lidar);
 
-    static void SetIMU(const FActorDescription &Description, AInertialMeasurementUnit *IMU);
+    static void SetGnss(const FActorDescription& Description, AGnssSensor* Gnss);
 
-    static void SetRadar(const FActorDescription &Description, ARadar *Radar);
+    static void SetIMU(const FActorDescription& Description, AInertialMeasurementUnit* IMU);
 
-    static void SetV2X(const FActorDescription &Description, AV2XSensor *V2X);
-    static void SetCustomV2X(const FActorDescription &Description, ACustomV2XSensor *V2X);
-  };
+    static void SetRadar(const FActorDescription& Description, ARadar* Radar);
+
+    static void SetV2X(const FActorDescription& Description, AV2XSensor* V2X);
+    static void SetCustomV2X(const FActorDescription& Description, ACustomV2XSensor* V2X);
+};

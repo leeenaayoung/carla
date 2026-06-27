@@ -1,10 +1,11 @@
-// Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma de Barcelona (UAB). This work is licensed under the terms of the MIT license. For a copy, see <https://opensource.org/licenses/MIT>.
+ï»¿// Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma de Barcelona (UAB). This work is licensed under the terms of the MIT license. For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "CrossWindManager.h"
 #include "EngineUtils.h"
 #include "WheeledVehicle.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Carla/Vehicle/CarlaWheeledVehicle.h"
 
 ACrossWindManager::ACrossWindManager()
 {
@@ -19,121 +20,67 @@ void ACrossWindManager::BeginPlay()
 void ACrossWindManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
     UWorld* World = GetWorld();
-    if (!World)
-    {
-        return;
-    }
+    if (!World) return;
 
-    const float BaseWindForce = 30000.0f;
-    const float DrivingYawTorqueStrength = 0.0f;
-
-    const float IdleSwayForce = 1300.0f;
-    const float IdleYawTorqueStrength = 0.0f;
-
-    //// ¼Óµµ ±¸°£ ±âÁØ (cm/s)
-    const float IdleSpeedThreshold = 250.0f;     // ¾à 1.2 m/s ÀÌÇÏ: Á¤Áö/±ØÀú¼Ó
-    const float LowSpeedThreshold = 900.0f;     // ¾à 9 m/s ÀÌÇÏ: Àú¼Ó
-    const float FullWindSpeed = 2200.0f;    // ÀÌ ÀÌ»óÀº ÃæºÐÈ÷ °­ÇÑ È¾Ç³ ¿µÇâ
-
-    // ÁÖ±â ¼³Á¤
-    const float IdleSwayFreq = 0.95f;            // Á¤Áö ½Ã ÁÂ¿ì ÀÜÈçµé¸²
-    const float IdleYawFreq = 0.60f;            // Á¤Áö ½Ã yaw ÀÜÈçµé¸²
-    
-    const float GustFreq1 = 0.24f;
-    const float GustFreq2 = 0.57f;
-
-    // ¼Óµµ¿¡ µû¸¥ ÃÖ¼Ò ¹Ù¶÷ ½ºÄÉÀÏ
-    const float MinDrivingWindScale = 0.08f;
     const float Time = World->GetTimeSeconds();
+
+    const float MaxLateralAccel = 90.0f;
+    const float IdleLateralAccel = 30.0f;
+    const float IdleSpeedThreshold = 250.0f;
+    const float FullWindSpeed = 1500.0f;
 
     for (TActorIterator<AWheeledVehicle> It(World); It; ++It)
     {
         AWheeledVehicle* Vehicle = *It;
-        if (!Vehicle)
-        {
-            continue;
-        }
-
-        // ego Â÷·®¸¸ Àû¿ë
-        /*if (!Vehicle->GetName().Contains(TEXT("BP_TeslaM3")))
-        {
-            continue;
-        }*/
+        if (!Vehicle) continue;
 
         USkeletalMeshComponent* Mesh = Vehicle->GetMesh();
+        if (!Mesh || !Mesh->IsSimulatingPhysics()) continue;
 
-        if (!Mesh || !Mesh->IsSimulatingPhysics())
-        {
-            continue;
-        }
-
-        const float Speed = Vehicle->GetVelocity().Size(); // cm/s
-
+        const float Speed = Vehicle->GetVelocity().Size();
         const FVector RightVector = Vehicle->GetActorRightVector();
-        const FVector ForwardVector = Vehicle->GetActorForwardVector();
-        const FVector UpVector = Vehicle->GetActorUpVector();
 
-        // 1) Á¤Áö / ±ØÀú¼Ó ±¸°£
-        if (Speed < IdleSpeedThreshold)
-        {
-            // Æò±Õ 0ÀÎ ¿Õº¹Çü Èçµé¸²
-            const float IdleSway = FMath::Sin(Time * IdleSwayFreq);
-            const float IdleYaw = FMath::Sin(Time * IdleYawFreq + 1.1f);
-
-            // Á¤Áö »óÅÂ¿¡¼­´Â Èû °¡ÇÏ´Â À§Ä¡¸¦ Áß½É¿¡ ´õ °¡±õ°Ô µÒ
-            const FVector IdleForceLocation =
-                Vehicle->GetActorLocation()
-                + UpVector * 25.0f;
-
-            const FVector SwayForce = RightVector * IdleSwayForce * IdleSway;
-
-            Mesh->AddForceAtLocation(SwayForce, IdleForceLocation);
-            /*Mesh->AddTorqueInRadians(FVector(0.0f, 0.0f, IdleYawTorqueStrength * IdleYaw));*/
-
-            continue;
-        }
-
-        // 2) ÁÖÇà ±¸°£
-        // ¼Óµµ Áõ°¡¿¡ µû¶ó ¹Ù¶÷ ¿µÇâ Áõ°¡
-        const float SpeedAlpha = FMath::Clamp(
-            (Speed - IdleSpeedThreshold) / (FullWindSpeed - IdleSpeedThreshold),
-            0.0f,
+        // ì½”ë„ˆ ê°ì‡ 
+        const FVector AngularVel = Mesh->GetPhysicsAngularVelocityInDegrees();
+        const float YawRate = FMath::Abs(AngularVel.Z);
+        const float CornerAttenuation = FMath::Clamp(
+            1.0f - (YawRate / 10.0f),
+            0.15f,
             1.0f
         );
 
-        const float SpeedFactor = FMath::Lerp(MinDrivingWindScale, 1.0f, SpeedAlpha);
-        const float Gust =
-            0.60f
-            + 0.38f * FMath::Sin(Time * 0.24f)
-            + 0.18f * FMath::Sin(Time * 0.57f + 1.1f);
-
-        const float ClampedGust = FMath::Clamp(Gust, 0.25f, 1.35f);
-
-        float LowSpeedAttenuation = 1.0f;
-        if (Speed < LowSpeedThreshold)
+        // ìŠ¤í‹°ì–´ ê°ì‡ 
+        float SteerAttenuation = 1.0f;
+        ACarlaWheeledVehicle* CarlaVehicle = Cast<ACarlaWheeledVehicle>(Vehicle);
+        if (CarlaVehicle)
         {
-            const float LowSpeedAlpha = FMath::Clamp(
-                (Speed - IdleSpeedThreshold) / (LowSpeedThreshold - IdleSpeedThreshold),
-                0.0f,
-                1.0f
-            );
-
-            LowSpeedAttenuation = FMath::Lerp(0.35f, 1.0f, LowSpeedAlpha);
+            const float SteerInput = FMath::Abs(CarlaVehicle->GetVehicleControl().Steer);
+            SteerAttenuation = FMath::Clamp(1.0f - SteerInput * 0.7f, 0.3f, 1.0f);
         }
 
-        const float ForceMag = BaseWindForce * SpeedFactor * ClampedGust * LowSpeedAttenuation;
-        const float DirectionBias = 0.9f + 0.1f * FMath::Sin(Time * 0.12f);
-        const FVector WindForce = RightVector * ForceMag * DirectionBias;
+        const float SwayWave = FMath::Sin(Time * 0.15f);
 
-        const FVector DrivingForceLocation =
-            Vehicle->GetActorLocation()
-            + UpVector * 40.0f;
+        float LateralAccelMag = 0.0f;
 
-        Mesh->AddForceAtLocation(WindForce, DrivingForceLocation);
+        if (Speed < IdleSpeedThreshold)
+        {
+            LateralAccelMag = IdleLateralAccel * SwayWave;
+        }
+        else
+        {
+            const float SpeedAlpha = FMath::Clamp(
+                (Speed - IdleSpeedThreshold) / (FullWindSpeed - IdleSpeedThreshold),
+                0.0f, 1.0f
+            );
+            LateralAccelMag = MaxLateralAccel * SpeedAlpha * SwayWave
+                * CornerAttenuation * SteerAttenuation;
+        }
 
-        const float YawScale = FMath::Lerp(0.35f, 1.0f, SpeedAlpha);
-        const float YawTorque = DrivingYawTorqueStrength * ClampedGust * YawScale * LowSpeedAttenuation;
+        const float OffsetAmount = LateralAccelMag * DeltaTime * DeltaTime * 0.5f;
+        Vehicle->SetActorLocation(
+            Vehicle->GetActorLocation() + RightVector * OffsetAmount,
+            true, nullptr, ETeleportType::TeleportPhysics
+        );
     }
 }
