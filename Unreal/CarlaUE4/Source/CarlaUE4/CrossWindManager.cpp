@@ -26,16 +26,16 @@ void ACrossWindManager::Tick(float DeltaTime)
         return;
     }
 
-    const float BaseWindForce = 30000.0f;
+    const float BaseWindForce = 50000.0f;
     const float DrivingYawTorqueStrength = 0.0f;
 
     const float IdleSwayForce = 1300.0f;
     const float IdleYawTorqueStrength = 0.0f;
 
     //// 속도 구간 기준 (cm/s)
-    const float IdleSpeedThreshold = 250.0f;     // 약 1.2 m/s 이하: 정지/극저속
-    const float LowSpeedThreshold = 900.0f;     // 약 9 m/s 이하: 저속
-    const float FullWindSpeed = 2200.0f;    // 이 이상은 충분히 강한 횡풍 영향
+    const float IdleSpeedThreshold = 200.0f;     // 약 1.2 m/s 이하: 정지/극저속
+    const float LowSpeedThreshold = 600.0f;     // 약 9 m/s 이하: 저속
+    const float FullWindSpeed = 1500.0f;    // 이 이상은 충분히 강한 횡풍 영향
 
     // 주기 설정
     const float IdleSwayFreq = 0.95f;            // 정지 시 좌우 잔흔들림
@@ -55,12 +55,6 @@ void ACrossWindManager::Tick(float DeltaTime)
         {
             continue;
         }
-
-        // ego 차량만 적용
-        /*if (!Vehicle->GetName().Contains(TEXT("BP_TeslaM3")))
-        {
-            continue;
-        }*/
 
         USkeletalMeshComponent* Mesh = Vehicle->GetMesh();
 
@@ -91,6 +85,8 @@ void ACrossWindManager::Tick(float DeltaTime)
 
             Mesh->AddForceAtLocation(SwayForce, IdleForceLocation);
             /*Mesh->AddTorqueInRadians(FVector(0.0f, 0.0f, IdleYawTorqueStrength * IdleYaw));*/
+            const FVector IdleRollTorque = ForwardVector * 200000.0f * IdleSway;
+            Mesh->AddTorqueInRadians(IdleRollTorque, NAME_None, true);
 
             continue;
         }
@@ -109,7 +105,7 @@ void ACrossWindManager::Tick(float DeltaTime)
             + 0.38f * FMath::Sin(Time * 0.24f)
             + 0.18f * FMath::Sin(Time * 0.57f + 1.1f);
 
-        const float ClampedGust = FMath::Clamp(Gust, 0.25f, 1.35f);
+        const float ClampedGust = FMath::Clamp(Gust, 0.2f, 1.4f);
 
         float LowSpeedAttenuation = 1.0f;
         if (Speed < LowSpeedThreshold)
@@ -127,11 +123,18 @@ void ACrossWindManager::Tick(float DeltaTime)
         const float DirectionBias = 0.9f + 0.1f * FMath::Sin(Time * 0.12f);
         const FVector WindForce = RightVector * ForceMag * DirectionBias;
 
-        const FVector DrivingForceLocation =
+        /*const FVector DrivingForceLocation =
             Vehicle->GetActorLocation()
-            + UpVector * 40.0f;
+            + UpVector * 100.0f;*/
+            // 선형 힘: CoM에 직접 줘서 토크 없이 옆으로만 밀기
+        Mesh->AddForce(WindForce, NAME_None, true);
 
-        Mesh->AddForceAtLocation(WindForce, DrivingForceLocation);
+        // Roll 토크: 별도로 따로 제어 (ForwardVector = X축)
+        const float RollTorqueMag = 0.0f;
+        const FVector RollTorque = ForwardVector * RollTorqueMag * ClampedGust * SpeedFactor;
+        Mesh->AddTorqueInRadians(RollTorque, NAME_None, true);
+
+        /*Mesh->AddForceAtLocation(WindForce, DrivingForceLocation);*/
 
         const float YawScale = FMath::Lerp(0.35f, 1.0f, SpeedAlpha);
         const float YawTorque = DrivingYawTorqueStrength * ClampedGust * YawScale * LowSpeedAttenuation;
