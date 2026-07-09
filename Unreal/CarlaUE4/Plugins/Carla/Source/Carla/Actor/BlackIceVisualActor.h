@@ -11,7 +11,7 @@ class UMaterialInterface;
 class USceneComponent;
 
 UCLASS()
-class CARLAUE4_API ABlackIceVisualActor : public AActor
+class ABlackIceVisualActor : public AActor
 {
     GENERATED_BODY()
 

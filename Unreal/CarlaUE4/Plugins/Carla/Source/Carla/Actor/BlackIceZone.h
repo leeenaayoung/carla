@@ -11,7 +11,7 @@ class ABlackIceVisualActor;
 class ACarlaWheeledVehicle;
 
 UCLASS()
-class CARLAUE4_API ABlackIceZone : public AActor
+class ABlackIceZone : public AActor
 {
     GENERATED_BODY()
 
@@ -25,7 +25,7 @@ public:
     ABlackIceVisualActor* VisualActor;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlackIce")
-    float IceFrictionScale = 0.21f;
+    float IceFrictionScale = 0.65f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlackIce")
     bool bAffectOnlyEgo = false;
@@ -34,11 +34,11 @@ public:
     bool bZoneActive = false;
 
     UPROPERTY()
-    /*ACarlaWheeledVehicle* CurrentVehicle = nullptr;*/
     TSet<ACarlaWheeledVehicle*> VehiclesInZone;
 
 protected:
     virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
 
     UFUNCTION()
     void OnBeginOverlap(
@@ -57,4 +57,11 @@ protected:
         UPrimitiveComponent* OtherComp,
         int32 OtherBodyIndex
     );
+
+    // black ice strength multiplier for slide force
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlackIce")
+    float SlideForceMultiplier = 0.2f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlackIce")
+    float EntryImpulseStrength = 0.0f;
 };
